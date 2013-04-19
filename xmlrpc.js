@@ -1,5 +1,4 @@
 /*jshint browser:true */
-/*global jQuery */
 (function() {
 	"use strict";
 
@@ -81,14 +80,15 @@
 			} else {
 				throw new Error("Unknown type supplied to `mkel`");
 			}
-			return node
+			return node;
 		};
 
-		var methodName = mkel('methodName', name);
-		var params = mkel('params', params.map(function(param) {
-			return mkel('param', mkel('value', XMLRPC.toXMLRPC(param, mkel)));
-		}));
-		var methodCall = mkel('methodCall', [methodName, params]);
+		var methodCall = mkel('methodCall', [
+			mkel('methodName', name),
+			mkel('params', params.map(function(param) {
+				return mkel('param', mkel('value', XMLRPC.toXMLRPC(param, mkel)));
+			}))
+		]);
 		doc.appendChild(methodCall);
 		return doc;
 	};
@@ -117,7 +117,7 @@
 		} else if (item instanceof Date) {
 			return types['date.iso8601'].encode(item, mkel);
 		} else if (A.isArray(item)) {
-			return types['array'].encode(item, mkel);
+			return types.array.encode(item, mkel);
 		} else if (type == "string" || type == "boolean") {
 			return types[type].encode(item, mkel);
 		} else if (type == "number") {
@@ -147,12 +147,12 @@
 	XMLRPC.parseDocument = function(doc) {
 		var response = doc.querySelector('methodResponse');
 
-		var fault = descendant(response, 'fault');
-		if (!fault) {
+		var faultNode = descendant(response, 'fault');
+		if (!faultNode) {
 			var params = response.querySelectorAll('params > param > value > *');
 			return A.map(params, XMLRPC.parseNode);
 		} else {
-			var fault = XMLRPC.parseNode(fault.querySelector('value > *'));
+			var fault = XMLRPC.parseNode(faultNode.querySelector('value > *'));
 			var err = new XMLRPCFault(fault.faultString);
 			err.msg = err.message = fault.faultString;
 			err.type = err.code = fault.faultCode;
