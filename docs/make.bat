@@ -99,9 +99,9 @@ if "%1" == "qthelp" (
 	echo.
 	echo.Build finished; now you can run "qcollectiongenerator" with the ^
 .qhcp project file in %BUILDDIR%/qthelp, like this:
-	echo.^> qcollectiongenerator %BUILDDIR%\qthelp\jQueryXML-RPC.qhcp
+	echo.^> qcollectiongenerator %BUILDDIR%\qthelp\xmlrpc-js.qhcp
 	echo.To view the help file:
-	echo.^> assistant -collectionFile %BUILDDIR%\qthelp\jQueryXML-RPC.ghc
+	echo.^> assistant -collectionFile %BUILDDIR%\qthelp\xmlrpc-js.ghc
 	goto end
 )
 

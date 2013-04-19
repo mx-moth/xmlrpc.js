@@ -77,17 +77,17 @@ qthelp:
 	@echo
 	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
 	      ".qhcp project file in $(BUILDDIR)/qthelp, like this:"
-	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/jQueryXML-RPC.qhcp"
+	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/xmlrpc-js.qhcp"
 	@echo "To view the help file:"
-	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/jQueryXML-RPC.qhc"
+	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/xmlrpc-js.qhc"
 
 devhelp:
 	$(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(BUILDDIR)/devhelp
 	@echo
 	@echo "Build finished."
 	@echo "To view the help file:"
-	@echo "# mkdir -p $$HOME/.local/share/devhelp/jQueryXML-RPC"
-	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/jQueryXML-RPC"
+	@echo "# mkdir -p $$HOME/.local/share/devhelp/xmlrpc-js"
+	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/xmlrpc-js"
 	@echo "# devhelp"
 
 epub:
