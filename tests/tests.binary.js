@@ -1,4 +1,4 @@
-/*jshint browser:true jquery:true */
+/*jshint browser:true */
 /*globals deepEqual equal ok assert test module */
 (function() {
 	"use strict";
@@ -58,12 +58,12 @@
 	};
 
 	test("base64 encoding", function() {
-		equal($.xmlrpc.binary.toBase64(makeArrayBuffer([1, 2, 3, 4, 5])), "AQIDBAU=",
+		equal(XMLRPC.binary.toBase64(makeArrayBuffer([1, 2, 3, 4, 5])), "AQIDBAU=",
 			"ArrayBuffer encoded to base64 string");
 	});
 
 	test("base64 decoding", function() {
-		abEqual($.xmlrpc.binary.fromBase64("AQIDBAU="), makeArrayBuffer([1, 2, 3, 4, 5]),
+		abEqual(XMLRPC.binary.fromBase64("AQIDBAU="), makeArrayBuffer([1, 2, 3, 4, 5]),
 			"Base64 string decoded into ArrayBuffer");
 	});
 
@@ -72,7 +72,7 @@
 		for (low = 0; low < max; low++) {
 			for (high = low + 1; high < max; high++) {
 				var ab = makeArrayBuffer(range(low, high));
-				abEqual(ab, $.xmlrpc.binary.fromBase64($.xmlrpc.binary.toBase64(ab)),
+				abEqual(ab, XMLRPC.binary.fromBase64(XMLRPC.binary.toBase64(ab)),
 					"Range from " + low + " to " + high + " encodes and decodes");
 			}
 		}

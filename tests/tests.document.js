@@ -1,4 +1,4 @@
-/*jshint browser:true jquery:true */
+/*jshint browser:true */
 /*globals deepEqual equal ok assert test module throws */
 (function() {
 	"use strict";
@@ -9,8 +9,8 @@
 	*/
 	var s = (function() {
 		var serializer = new XMLSerializer();
-		return function($node) {
-			return serializer.serializeToString($node);
+		return function(node) {
+			return serializer.serializeToString(node);
 		};
 	})();
 
@@ -22,7 +22,7 @@
 	})();
 
 	test("Creating a document", function() {
-		equal(s($.xmlrpc.document('method', [4, 'foo'])),
+		equal(s(XMLRPC.document('method', [4, 'foo'])),
 			'<methodCall>' +
 				'<methodName>method</methodName>' +
 				'<params>' +
@@ -32,7 +32,7 @@
 			'</methodCall>',
 			'Can create a simple document');
 
-		equal(s($.xmlrpc.document('empty', [])),
+		equal(s(XMLRPC.document('empty', [])),
 			'<methodCall>' +
 				'<methodName>empty</methodName>' +
 				'<params/>' +
@@ -43,7 +43,7 @@
 	test("Decoding a document", function() {
 
 		deepEqual(
-			$.xmlrpc.parseDocument(d(
+			XMLRPC.parseDocument(d(
 				'<?xml version="1.0"?>' +
 				'<methodResponse>' +
 					'<params>' +
@@ -55,7 +55,7 @@
 			"Can parse a simple response");
 
 		deepEqual(
-			$.xmlrpc.parseDocument(d(
+			XMLRPC.parseDocument(d(
 				'<?xml version="1.0"?>' +
 				'<methodResponse>' +
 					'<params></params>' +
@@ -64,7 +64,7 @@
 			"Can parse an empty response");
 
 		deepEqual(
-			$.xmlrpc.parseDocument(d(
+			XMLRPC.parseDocument(d(
 				'<?xml version="1.0"?>' +
 				'<methodResponse>' +
 					'<params>' +
@@ -85,7 +85,7 @@
 	test("Handling errors", 5, function() {
 		throws(
 			function() {
-				$.xmlrpc.parseDocument(d(
+				XMLRPC.parseDocument(d(
 					'<?xml version="1.0"?>' +
 					'<methodResponse>' +
 						'<fault>' +
@@ -103,11 +103,11 @@
 					'</methodResponse>'
 				));
 			},
-			$.xmlrpc.XmlRpcFault,
+			XMLRPC.XMLRPCFault,
 			"Parsing a fault response throws an error");
 
 		try {
-			$.xmlrpc.parseDocument(d(
+			XMLRPC.parseDocument(d(
 				'<?xml version="1.0"?>' +
 				'<methodResponse>' +
 					'<fault>' +

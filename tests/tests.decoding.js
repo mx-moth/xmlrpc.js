@@ -1,4 +1,4 @@
-/*jshint browser:true jquery:true */
+/*jshint browser:true */
 /*globals deepEqual equal ok assert test module */
 (function() {
 	"use strict";
@@ -7,59 +7,62 @@
 	/**
 	* Generate an element from a string, and return just that element
 	*/
-	function el(xml) {
-		return $(xml)[0];
-	}
+	var el = (function() {
+		var parser = new DOMParser();
+		return function(xml) {
+			return parser.parseFromString(xml, 'text/xml').childNodes[0];
+		};
+	})();
 
-	test("JavaScript primitive value decoding", function($xml) {
+	test("JavaScript primitive value decoding", function() {
 
-		equal($.xmlrpc.parseNode(el('<boolean>1</boolean>')), true,
+		equal(XMLRPC.parseNode(el('<boolean>1</boolean>')), true,
 			'<boolean> true node decodes');
 
-		equal($.xmlrpc.parseNode(el('<boolean>0</boolean>')), false,
+		equal(XMLRPC.parseNode(el('<boolean>0</boolean>')), false,
 			'<boolean> false node decodes');
 
 
-		equal($.xmlrpc.parseNode(el('<int>4</int>')), 4,
+		equal(XMLRPC.parseNode(el('<int>4</int>')), 4,
 			'<int> node decodes');
-		equal($.xmlrpc.parseNode(el('<i4>5</i4>')), 5,
+		equal(XMLRPC.parseNode(el('<i4>5</i4>')), 5,
 			'<i4> node decodes');
-		equal($.xmlrpc.parseNode(el('<i8>6</i8>')), 6,
+		equal(XMLRPC.parseNode(el('<i8>6</i8>')), 6,
 			'<i8> node decodes');
-		equal($.xmlrpc.parseNode(el('<i16>7</i16>')), 7,
+		equal(XMLRPC.parseNode(el('<i16>7</i16>')), 7,
 			'<i16> node decodes');
-		equal($.xmlrpc.parseNode(el('<double>8.9</double>')), 8.9,
+		equal(XMLRPC.parseNode(el('<double>8.9</double>')), 8.9,
 			'<double> node decodes');
 
-		equal($.xmlrpc.parseNode(el('<nil/>')), null,
+		equal(XMLRPC.parseNode(el('<nil/>')), null,
 			'<nil> node decodes');
-		equal($.xmlrpc.parseNode(el('<nil>Hello</nil>')), null,
+		equal(XMLRPC.parseNode(el('<nil>Hello</nil>')), null,
 			'<nil> node decodes, even when not empty');
 
-		equal($.xmlrpc.parseNode(el('<string>Hello</string>')), "Hello",
+		equal(XMLRPC.parseNode(el('<string>Hello</string>')), "Hello",
 			'<string> node decodes');
 
-		equal($.xmlrpc.parseNode(el('<string></string>')), "",
+		equal(XMLRPC.parseNode(el('<string></string>')), "",
 			'Empty <string> node decodes');
 
 		var timestamp = 1350943077000;
 		var datestring = "2012-10-22T21:57:57Z";
 		var dateNode = el('<date.iso8601>' + datestring + '</date.iso8601>');
-		equal($.xmlrpc.parseNode(dateNode).getTime(), timestamp,
+		equal(XMLRPC.parseNode(dateNode).getTime(), timestamp,
 			"<date.iso8601> node decodes");
 	});
 
-	test("Array decoding", function($xml) {
-		deepEqual($.xmlrpc.parseNode(el('<array><data><value><int>4</int></value><value><string>Hello</string></value></data></array>')),
+	test("Array decoding", function() {
+		deepEqual(XMLRPC.parseNode(el('<array><data><value><int>4</int></value><value><string>Hello</string></value></data></array>')),
 		[4, "Hello"],
 		"Simple array decodes");
 
-		deepEqual($.xmlrpc.parseNode(el('<array><data/></array>')),
+		deepEqual(XMLRPC.parseNode(el('<array><data/></array>')),
 			[],
 			"Empty array decodes");
 
 		deepEqual(
-			$.xmlrpc.parseNode(el(
+			XMLRPC.parseNode(el(
 				'<array><data>' +
 					'<value><int>1</int></value>' +
 					'<value><array><data>' +
@@ -72,7 +75,7 @@
 
 		// Childless value nodes should be treated like string nodes
 		deepEqual(
-			$.xmlrpc.parseNode(el(
+			XMLRPC.parseNode(el(
 				'<array><data>' +
 					'<value><string>String node</string></value>' +
 					'<value></value>' +
@@ -83,9 +86,9 @@
 			"Array containing childless <value> nodes parses correctly");
 	});
 
-	test("Struct decoding", function($xml) {
+	test("Struct decoding", function() {
 		deepEqual(
-			$.xmlrpc.parseNode(el(
+			XMLRPC.parseNode(el(
 				'<struct>' +
 					'<member>' +
 						'<name>foo</name>' +
@@ -99,11 +102,11 @@
 			{foo: 4, bar: "Hello"},
 			"Simple <struct> decodes");
 
-		deepEqual($.xmlrpc.parseNode(el('<struct></struct>')), {},
+		deepEqual(XMLRPC.parseNode(el('<struct></struct>')), {},
 			"Empty <struct> decodes");
 
 		deepEqual(
-			$.xmlrpc.parseNode(el(
+			XMLRPC.parseNode(el(
 				'<struct>' +
 					'<member>' +
 						'<name>foo</name>' +
@@ -123,7 +126,7 @@
 			"struct containing struct decodes");
 
 		deepEqual(
-			$.xmlrpc.parseNode(el(
+			XMLRPC.parseNode(el(
 				'<struct>' +
 					'<member>' +
 						'<name>stringNode</name>' +

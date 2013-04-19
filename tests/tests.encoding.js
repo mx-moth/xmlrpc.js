@@ -1,4 +1,4 @@
-/*jshint browser:true jquery:true */
+/*jshint browser:true */
 /*globals deepEqual equal ok assert test module */
 (function() {
 	"use strict";
@@ -9,78 +9,91 @@
 	*/
 	var s = (function() {
 		var serializer = new XMLSerializer();
-		return function($node) {
-			return serializer.serializeToString($node[0]);
+		return function(node) {
+			return serializer.serializeToString(node);
 		};
 	})();
 
 	/**
-	* A wrapper around test functions that makes an $xml function for testing
+	* A wrapper around test functions that makes an Mkel function for testing
 	* with. Kinda like a Python decorator
 	*/
-	var need$xml = function(fn) {
+	var needMkel = function(fn) {
 		return function() {
 			var doc = document.implementation.createDocument(null, null, null);
-			var $xml = function(name) {
-				return $(doc.createElement(name));
+			var mkel = function(name, children) {
+				var node = doc.createElement(name);
+				if (arguments.length == 1) return node;
+
+				if (typeof children === 'string') {
+					node.appendChild(doc.createTextNode(children));
+				} else if (Array.isArray(children)) {
+					children.forEach(node.appendChild.bind(node));
+				} else if (children instanceof Element) {
+					node.appendChild(children);
+				} else {
+					console.log('Bad arguments', arguments, children instanceof String, typeof children);
+					throw new Error("Unknown type supplied to `mkel`");
+				}
+				return node
 			};
 
 			var args = [].slice.call(arguments);
-			args.unshift($xml);
+			args.unshift(mkel);
 
 			return fn.apply(this, args);
 		};
 	};
 
-	test("JavaScript primitive value encoding", need$xml(function($xml) {
-		var types = $.xmlrpc.types;
+	test("JavaScript primitive value encoding", needMkel(function(mkel) {
+		var types = XMLRPC.types;
 
-		deepEqual(types.boolean.encode(true, $xml), $xml('boolean').text('1'),
+		deepEqual(types.boolean.encode(true, mkel), mkel('boolean', '1'),
 			"Boolean true encodes to <boolean>1</boolean>");
 
-		deepEqual(types.boolean.encode(false, $xml), $xml('boolean').text('0'),
+		deepEqual(types.boolean.encode(false, mkel), mkel('boolean', '0'),
 			"Boolean true encodes to <boolean>0</boolean>");
 
 
-		deepEqual(types.int.encode(3, $xml), $xml('int').text('3'),
+		deepEqual(types.int.encode(3, mkel), mkel('int', '3'),
 			"Integer 3 encodes to <int>3</int>");
-		deepEqual(types.i8.encode(4, $xml), $xml('i8').text('4'),
+		deepEqual(types.i8.encode(4, mkel), mkel('i8', '4'),
 			"Integer 3 encodes to <i8>4</i8>");
-		deepEqual(types.double.encode(5.5, $xml), $xml('double').text('5.5'),
+		deepEqual(types.double.encode(5.5, mkel), mkel('double', '5.5'),
 			"Double 5.5 encodes to <double>5.5</double>");
 
-		deepEqual(types.nil.encode(null, $xml), $xml('nil'),
+		deepEqual(types.nil.encode(null, mkel), mkel('nil'),
 			"Null encodes to <nil>");
-		deepEqual(types.nil.encode("hello", $xml), $xml('nil'),
+		deepEqual(types.nil.encode("hello", mkel), mkel('nil'),
 			"Null encodes to <nil> when supplied a non-null value");
 
-		deepEqual(types.string.encode("Hello, World!", $xml), $xml('string').text("Hello, World!"),
+		deepEqual(types.string.encode("Hello, World!", mkel), mkel('string', "Hello, World!"),
 			"String encodes to <string>...</string>");
-		deepEqual(types.string.encode("", $xml), $xml('string').text(""),
+		deepEqual(types.string.encode("", mkel), mkel('string', ""),
 			"Empty String encodes to <string></string>");
 
 		var timestamp = 1350943077107;
 		var datestring = "2012-10-22T21:57:57Z";
 		var date = new Date();
 		date.setTime(timestamp);
-		deepEqual(types['date.iso8601'].encode(date, $xml), $xml('date.iso8601').text(datestring),
+		deepEqual(types['date.iso8601'].encode(date, mkel), mkel('date.iso8601', datestring),
 			"Date encodes to <date.iso8601>...</date.iso8601>");
 
 	}));
 
-	test("Array encoding", need$xml(function($xml) {
-		var types = $.xmlrpc.types;
+	test("Array encoding", needMkel(function(mkel) {
+		var types = XMLRPC.types;
 
-		equal(s(types.array.encode([4, "Hello"], $xml)),
+		equal(s(types.array.encode([4, "Hello"], mkel)),
 			'<array><data><value><int>4</int></value><value><string>Hello</string></value></data></array>',
 			"Simple array encodes");
 
 		// If not all browsers encode this to <data/>, this will fail.
-		equal(s(types.array.encode([], $xml)),
+		equal(s(types.array.encode([], mkel)),
 			'<array><data/></array>',
 			"Empty array encodes");
 
-		equal(s(types.array.encode([1, [2]], $xml)),
+		equal(s(types.array.encode([1, [2]], mkel)),
 			'<array><data>' +
 				'<value><int>1</int></value>' +
 				'<value><array><data>' +
@@ -90,35 +103,35 @@
 			"Array containing array encodes");
 	}));
 
-	test("Guessing types", need$xml(function($xml) {
-		ok($.xmlrpc.toXmlRpc(4, $xml).is('int'),
+	test("Guessing types", needMkel(function(mkel) {
+		equal(XMLRPC.toXMLRPC(4, mkel).nodeName, 'int',
 			"Number 4 guessed to be <int>");
 
-		ok($.xmlrpc.toXmlRpc(4.5, $xml).is('double'),
+		equal(XMLRPC.toXMLRPC(4.5, mkel).nodeName, 'double',
 			"Number 4.5 guessed to be <double>");
 
-		ok($.xmlrpc.toXmlRpc(true, $xml).is('boolean'),
+		equal(XMLRPC.toXMLRPC(true, mkel).nodeName, 'boolean',
 			"Boolean guessed to be <boolean>");
 
-		ok($.xmlrpc.toXmlRpc(null, $xml).is('nil'),
+		equal(XMLRPC.toXMLRPC(null, mkel).nodeName, 'nil',
 			"null guessed to be <nil>");
 
-		ok($.xmlrpc.toXmlRpc(undefined, $xml).is('nil'),
+		equal(XMLRPC.toXMLRPC(undefined, mkel).nodeName, 'nil',
 			"undefined guessed to be <nil>");
 
-		ok($.xmlrpc.toXmlRpc("Hello", $xml).is('string'),
+		equal(XMLRPC.toXMLRPC("Hello", mkel).nodeName, 'string',
 			"String guessed to be <string>");
 
-		ok($.xmlrpc.toXmlRpc(new Date(), $xml).is('date\\.iso8601'),
+		equal(XMLRPC.toXMLRPC(new Date(), mkel).nodeName, 'date.iso8601',
 			"Date guessed to be <date.iso8601>");
 
-		ok($.xmlrpc.toXmlRpc({foo: 'bar'}, $xml).is('struct'),
+		equal(XMLRPC.toXMLRPC({foo: 'bar'}, mkel).nodeName, 'struct',
 			"Object guessed to be <struct>");
 
-		ok($.xmlrpc.toXmlRpc([], $xml).is('array'),
+		equal(XMLRPC.toXMLRPC([], mkel).nodeName, 'array',
 			"Array guessed to be <array>");
 
-		ok($.xmlrpc.toXmlRpc(new ArrayBuffer(), $xml).is('base64'),
+		equal(XMLRPC.toXMLRPC(new ArrayBuffer(), mkel).nodeName, 'base64',
 			"ArrayBuffer guessed to be <base64>");
 	}));
 
